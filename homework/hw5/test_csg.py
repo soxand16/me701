@@ -35,6 +35,19 @@ class TestCSG(unittest.TestCase) :
         self.assertEqual(p1.x, 2.0)
         self.assertEqual(p1.y, 4.0) 
         
+    def testPoint_sub(self) :
+        p0 = Point(1.0, 2.0)
+        p1 = p0 - Point(2.0, 2.0)
+        self.assertEqual(p1.x, -1.0)
+        self.assertEqual(p1.y, 0.0)
+        
+    def testPoint_truediv(self) :
+        p0 = Point(2.0, 4.0)
+        p1 = p0 / 2.0
+        self.assertEqual(p1.x, 1.0)
+        self.assertEqual(p1.y, 2.0)
+        
+        
     #-------------------------------------------------------------------------#
     # TESTS OF SURFACE CLASSES
     #-------------------------------------------------------------------------#
@@ -49,7 +62,7 @@ class TestCSG(unittest.TestCase) :
         c = QuadraticSurface(A=1, B=1, D=-4, E=-4, F=4)
         self.assertAlmostEqual(c.f(Point(0, 2)), 0.0)
 
-    def testQuadraticSurface_intersections(self) :
+    def testQuadraticSurface_intersections_multiple(self) :
         
         # ray starting at origin and with a direction of 45 degrees
         ray = Ray(Point(0, 0), Point(1, 1))
@@ -70,6 +83,30 @@ class TestCSG(unittest.TestCase) :
         self.assertAlmostEqual(ints[0].y, (np.sqrt(8)-2)*np.sin(np.pi/4))     
         self.assertAlmostEqual(ints[1].x, (np.sqrt(8)+2)*np.sin(np.pi/4))
         self.assertAlmostEqual(ints[1].y, (np.sqrt(8)+2)*np.sin(np.pi/4))
+        
+    def testQuadraticSurface_intersections_tangent(self) :
+        
+        # ray along x-axis
+        ray = Ray(Point(0, 0), Point(1, 0))                
+                
+        # Circle of radius 1 centered at (1,1)
+        c = Circle(1,1,1)
+        ints = c.intersections(ray)
+        ints.sort(key=lambda p: p.x)
+        self.assertEqual(len(ints), 1)
+        self.assertAlmostEqual(ints[0].x, 1)
+        self.assertAlmostEqual(ints[0].y, 0)     
+        
+    def testQuadraticSurface_intersections_none(self) :
+        
+        # ray along x-axis
+        ray = Ray(Point(0, 0), Point(1, 0))                
+                
+        # Circle of radius 1 centered at (0,2)
+        c = Circle(1,0,2)
+        ints = c.intersections(ray)
+        ints.sort(key=lambda p: p.x)
+        self.assertEqual(len(ints), 0)
         
     def testPlaneV(self) :
         v = PlaneV(3)
@@ -204,6 +241,7 @@ class TestCSG(unittest.TestCase) :
         region = self.get_region()
         ray = Ray(Point(-3, 0), Point(1, 0))        
         ints = region.intersections(ray)
+        ints.sort(key=lambda p: p.x)
         self.assertAlmostEqual(ints[0].x, -2)
         self.assertAlmostEqual(ints[1].x, -1)
         self.assertAlmostEqual(ints[2].x,  1)
