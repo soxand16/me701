@@ -104,6 +104,12 @@ class Ray:
 # Node Class - Abstract - Given
 # =============================================================================
 class Node:
+    """Abstract class outlining methods neccessary for sub classes
+    
+    subclasses:
+        Primative
+        Operator
+    """
 
     def contains(self, p) :
         """Does the node contain the point?"""
@@ -119,8 +125,11 @@ class Node:
 class Primitive(Node) :
     
     def __init__(self, surface, sense) :
-        """ Define a node consisting of a directed surface.
-        Here, sense indicates "into" or "outof" the surface.
+        """Defines a node consisting of a directed surface.
+        Here, sense indicates inside or outside the surface.
+        
+        Super:
+            Node
         
         Arguments:
             surface : Surface
@@ -144,6 +153,8 @@ class Primitive(Node) :
 # =============================================================================
 
 class Operator(Node) :
+    """Defines
+    """
     
     def __init__(self, L, R) :
         self.L, self.R = L, R
