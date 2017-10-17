@@ -47,9 +47,19 @@ class Point :
         return Point(new_x, new_y)
     
     def __truediv__(self, scale):
-        """Scales a point by the inverse of a scalar number"""
-        new_x = self.__x / scale
-        new_y = self.__y / scale
+        """If scalar is given, scales a point by the inverse of a scalar number.
+        If a point is given, the x and y terms are divided.
+        """
+        if isinstance(scale, Point):
+            new_x = self.__x / scale.x
+            new_y = self.__y / scale.y
+        else :
+            try : 
+                assert (type(scale) == float) or (type(scale) == int)
+            except :
+                raise TypeError('scale must be a Point, float, or int')
+            new_x = self.__x / scale
+            new_y = self.__y / scale
         return Point(new_x, new_y)
     
     def distance(self, p = False) :
@@ -64,11 +74,24 @@ class Point :
 class Ray:
     
     def __init__(self, origin, direction) :
+        """Creates a ray objects
+        
+        Arguments:
+            origin: Point
+                The origin point of the ray
+            direction: Point
+                A vector originating at the origin defining the direction
+                or the ray.
+        """
         self.__origin = origin
         # ensure the direction is normalized to unity, i.e., cos^2 + sin^2 = 1
         norm = np.sqrt(direction.x**2 + direction.y**2)
+        try :
+            assert norm != 0
+        except :
+            raise ValueError('direction must have magnitude')
         self.__direction = Point(direction.x/norm, direction.y/norm)
-        self.__m = (origin.y - direction.y)/(origin.x - direction.x)
+        self.__m = (direction.y)/(direction.x)
         self.__b = origin.y - self.__m * origin.x
             
     def __str__(self) :
@@ -89,6 +112,49 @@ class Ray:
     @property
     def direction(self) :
         return self.__direction
+    
+    def intersects(self, p) :
+        """Determines if a ray intersects a point
+        
+        Arguments:
+            p: Point
+                The point for which intersection is determined
+                
+        Returns:
+            intersect: bool
+                True if intersected, Else false
+        """
+        
+        # Move reference origin to origin of ray
+        new_p = p - self.origin
+        # If the ray has no magnitude in the x-direction
+        if not self.direction.x :
+            #If the adjusted point's x-value is also 0
+            if self.direction.x == new_p.x :
+                # get the magnitude from y points, if positive point is on ray
+                return new_p.y / self.direction.y >= 0
+            else :
+                return False
+        # If the ray has no magnitude in the y-direction
+        elif not self.direction.y :
+            #If the adjusted point's y-value is also 0
+            if self.direction.y == new_p.y :
+                # get the magnitude from x points, if positive point is on ray
+                return new_p.x / self.direction.x >= 0
+            else :
+                return False
+        # ray has magnitude in x and y direction
+        else :
+            # divide
+            d_point = new_p / self.direction
+            # magnitudes must be equal for point to be on ray
+            if d_point.x == d_point.y :
+                d = d_point.x
+                # magnitude must be positive to be on ray
+                return d >= 0
+            else :
+                return False
+         
                
 
 
@@ -145,7 +211,7 @@ class Primitive(Node) :
         
     def intersections(self, r) :
         ints = self.surface.intersections(r)
-        ints.sort(key=lambda p: p.x)
+        ints.sort(key=lambda p: p.distance(r.origin))
         return ints
         
 # =============================================================================
@@ -153,12 +219,14 @@ class Primitive(Node) :
 # =============================================================================
 
 class Operator(Node) :
-    """Defines
-    """
     
     def __init__(self, L, R) :
         self.L, self.R = L, R
-        # some super checking algorithm
+        try :
+            assert isinstance(L, Node)
+            assert isinstance(R, Node)
+        except :
+            raise TypeError('L and R must be instances of Node')
 
     def contains(self, p) :
         raise NotImplementedError
@@ -168,7 +236,7 @@ class Operator(Node) :
         pointsL = self.L.intersections(r)
         pointsR = self.R.intersections(r)
         ints = pointsL + pointsR
-        ints.sort(key=lambda p: p.x)
+        ints.sort(key=lambda p: p.distance(r.origin))
         return ints
       
 # =============================================================================
@@ -319,9 +387,14 @@ class QuadraticSurface(Surface) :
         
         # If the equation is not quadratic
         if not (A or B or C) :
-            x = -(E*b + F)/(D + E*m)
-            y = m*x + b
-            return [Point(x, y)]
+            # If the slope of the ray and line are equal
+            if -D/E == m :
+                # They do not intersect
+                return []
+            else :
+                x = -(E*b + F)/(D + E*m)
+                y = m*x + b
+                return [Point(x, y)]
         # Else it is quadratic
         else :
             # If the sqrt contains a positive number, there are two intersections.
@@ -331,7 +404,8 @@ class QuadraticSurface(Surface) :
                 y1 = m*x1 + b
                 y2 = m*x2 + b
                 ints = [Point(x1,y1), Point(x2,y2)]
-                ints.sort(lambda p: p.x)
+                ints = [i for i in ints if r.intersects(i)]
+                ints.sort(key=lambda p: p.distance(r.origin))
                 return ints
             # Else if the sqrt contains a negative number, there are no intersections.
             elif -4*A*B*b**2 - 4*A*E*b - 4*A*F + 4*B*D*b*m - 4*B*F*m**2 + C**2*b**2 + 2*C*D*b - 2*C*E*b*m - 4*C*F*m + D**2 + 2*D*E*m + E**2*m**2 < 0 :
@@ -343,6 +417,21 @@ class QuadraticSurface(Surface) :
                 return [Point(x,y)]
                 
     def f(self, p) :
+        """Retruns value of function that difines the surface evaluated at
+        point p.
+        
+        Arguments:
+            p: Point
+                point to evaluate funtion at
+        
+        Returns:
+            f(p): float
+                function evaluated at p
+        """
+        try :
+            assert type(p) == Point
+        except :
+            raise TypeError('p must be a point')
         x, y = p.x, p.y
         A, B, C, D, E, F = self.coeff
         return A*x**2 + B*y**2 + C*x*y + D*x + E*y + F 
@@ -498,9 +587,19 @@ class Region :
             self.node = O(self.node, node)
           
     def intersections(self, r) :
-        return self.node.intersections(r)
+        try :
+            assert type(r) == Ray
+        except :
+            raise TypeError('r must be a ray')
+        ints = list(set(self.node.intersections(r)))
+        ints.sort(key=lambda p: p.distance(r.origin))
+        return ints
     
     def contains(self, p) :
+        try :
+            assert type(p) == Point
+        except :
+            raise TypeError('p must be a point')
         return self.node.contains(p)
     
 
@@ -516,34 +615,95 @@ class Geometry :
     noregion = -1    
     
     def __init__(self,  xmin, xmax, ymin, ymax) :
-        self.xmin, self.xmax, self.ymin, self.ymax = xmin, xmax, ymin, ymax
-        self.regions = []
+        self.__xmin, self.__xmax, self.__ymin, self.__ymax = xmin, xmax, ymin, ymax
+        self.__regions = []
+        
+    @property
+    def xmin(self) :
+        return self.__xmin
+    
+    @property
+    def xmax(self) :
+        return self.__xmax
+    
+    @property
+    def ymin(self) :
+        return self.__ymin
+    
+    @property 
+    def ymax(self) :
+        return self.__ymax
+    
+    @property
+    def regions(self) :
+        return self.__regions
         
     def add_region(self, r) :
         self.regions.append(r)
 
     def find_region(self, p) :
-        region = Geometry.noregion
-        # look for the region containing p.
+        """Finds the index(es) of the region(s) containing the point given
+        
+        Arguments:
+            p: Point
+                Find regions that contain this point
+                
+        Returns:
+            region: list or int
+                list of the index(es) of the region(s) containing p. If no 
+                region contains p or p is out of the bounds of the geometry,
+                Geometry.noregion is returned.
+        """
+        try :
+            assert type(p) == Point
+        except :
+            raise TypeError('p must be a point')
+        # Checks if point is within the bounds of the geometry.
+        if p.x < self.__xmin or p.x > self.__xmax or p.y < self.__ymin or p.y > self.__ymax :
+            return Geometry.noregion
+        region = []
+        # Checks each region, if it contains the point, adds the index to 
+        # region
+        for i in range(len(self.__regions)) :
+            if self.__regions[i].contains(p) :
+                region.append(i)
+        # if no regions contained the point, returns Geometry.noregion
+        if not len(region) :
+            region = Geometry.noregion
         return region
         
     def plot(self, nx, ny) :
-        pass
+        """Plots the geometry
+        
+        Arguments:
+            nx: int
+                number of x points
+            ny: int
+                number of y points
+        """
+        x = np.linspace(self.xmin, self.xmax, nx)
+        y = np.linspace(self.ymin, self.ymax, ny)
+        
+        Z = np.zeros((nx, ny))
+        
+        
+        for i in range(len(x)) :
+            for j in range(len(y)) :
+                regions = self.find_region(Point(x[i], y[j]))
+                if type(regions) == list :
+                    regions = len(regions)                
+                Z[i][j] = regions
+        levels = list(range(-1, int(np.amax(Z))+1))        
+        cp = plt.contourf(x,y,Z,levels)
+        plt.colorbar(cp)
+        plt.title('Geometry Plot')
+        plt.show()
+    
         
 if __name__ == '__main__' :
+    pass
+
     
-    # unit circle centered at origin
-    c0 = Circle(1)
-    # circle of radius two centered at the origin
-    c1 = Circle(2)
-    
-    # produce a region that represents the area between the two circles
-    region = Region()
-    region.append(surface=c0, sense=False, operation="I")
-    region.append(surface=c1, sense=True, operation="I")
-    
-    ray = Ray(Point(-3, 0), Point(1, 0))        
-    ints = region.intersections(ray)
 
     
     
