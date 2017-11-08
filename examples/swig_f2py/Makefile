@@ -1,4 +1,4 @@
-SWIG_INCLUDES=-I/home/robertsj/opt/miniconda3/include/python3.6m -I/home/robertsj/opt/miniconda3/lib/python3.6/site-packages/numpy/core/include
+SWIG_INCLUDES=-I/Users/Sam/opt/anaconda/include/python3.6m -I/Users/Sam/opt/anaconda/lib/python3.6/site-packages/numpy/core/include
 
 all: test_f90_demo test_cpp_demo f2py_demo swig_demo 
 
