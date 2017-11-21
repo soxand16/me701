@@ -21,7 +21,24 @@
 // I've **used** the labor of others liberally.
 
 // This is what we want for input arrays that should not get changed
-%apply (double* INPLACE_ARRAY1, int DIM1) {(double* a, int n)}
+%apply (double* IN_ARRAY1, int DIM1) {(double* vec1, int len1),
+    (double* vec2, int len2)}
+%rename (interpolate) my_interpolate;
+%exception interpolate {
+    $action
+    if (PyErr_Occurred()) SWIG_fail;
+}
+%inline %{
+    double interpolate(double* vec1, int len1, double* vec2, int len2) {
+        if (len1 != len2) {
+            PyErr_Format(PyExc_ValueError,
+                         "Arrays of lengths (%d,%d) given",
+                         len1, len2);
+            return 0.0;
+        }
+        return dot(vec1, vec2, len1);
+    }
+    %}
 
 // This is what we want for an array produced by the function.
 %apply (int* ARGOUT_ARRAY1, int DIM1) {(int* a, int n)}
