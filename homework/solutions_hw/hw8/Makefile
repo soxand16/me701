@@ -12,6 +12,15 @@ swig:
 	g++ -fPIC -c oxandale_samuel_hw8_p1.cpp oxandale_samuel_hw8_p1_cpp_wrap.cxx ${SWIG_INCLUDES}
 	g++ -shared oxandale_samuel_hw8_p1.o oxandale_samuel_hw8_p1_cpp_wrap.o ${SWIG_INCLUDES} -o _oxandale_samuel_hw8_p1_cpp.so
 
+
+# Remove objects, module files, and exectables
+clean:
+	@rm -f *.o *.mod *-x *wrap.cxx *.so *.pyc
+
+# Same, but leave the shared objects
+neat:
+	@rm -f *.o *.mod *-x *wrap.cxx *.pyc
+
 #===============================================================================
 # Rules
 #===============================================================================
