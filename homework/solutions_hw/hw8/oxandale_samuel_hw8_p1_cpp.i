@@ -1,7 +1,7 @@
 // The syntax is %module module_name, i.e., the name
 // you want to import.  All of the C++ includes you need
 // should be included here.
-%module simple_cpp_demo
+%module oxandale_samuel_hw8_p1_cpp
 %{
 #include "oxandale_samuel_hw8_p1_cpp.hh"
     %}
