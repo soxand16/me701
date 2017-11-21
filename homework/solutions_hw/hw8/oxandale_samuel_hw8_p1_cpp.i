@@ -36,7 +36,7 @@
                          len1, len2);
             return 0.0;
         }
-        return dot(vec1, vec2, len1);
+        return interpolate(vec1, vec2, len1);
     }
     %}
 
