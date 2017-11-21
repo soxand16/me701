@@ -29,14 +29,14 @@
     if (PyErr_Occurred()) SWIG_fail;
 }
 %inline %{
-    double interpolate(double* vec1, int len1, double* vec2, int len2) {
+    double interpolate(double x_new, double* vec1, int len1, double* vec2, int len2, int order) {
         if (len1 != len2) {
             PyErr_Format(PyExc_ValueError,
                          "Arrays of lengths (%d,%d) given",
                          len1, len2);
             return 0.0;
         }
-        return interpolate(vec1, vec2, len1);
+        return interpolate(x_new, vec1, vec2, len1, order);
     }
     %}
 
