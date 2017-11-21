@@ -12,6 +12,10 @@ swig:
 	g++ -fPIC -c oxandale_samuel_hw8_p1.cpp oxandale_samuel_hw8_p1_cpp_wrap.cxx ${SWIG_INCLUDES}
 	g++ -shared oxandale_samuel_hw8_p1.o oxandale_samuel_hw8_p1_cpp_wrap.o ${SWIG_INCLUDES} -o _oxandale_samuel_hw8_p1_cpp.so
 
+# Integration compilation
+integrate:
+	g++ oxandale_samuel_hw8_p2.cpp -o oxandale_samuel_hw8_p2
+
 
 # Remove objects, module files, and exectables
 clean:
