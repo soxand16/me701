@@ -124,7 +124,7 @@ double midpoint(int n, int m)
     return I;
 }
 
-double I_ref(int n, int m)
+double calc_I_ref(int n, int m)
 {
     double bi_coeff;
     if (n < 2)
@@ -138,9 +138,15 @@ double I_ref(int n, int m)
     return bi_coeff/2 + n/3.0;
 }
 
+double abs_rel_err(double ref, double calc)
+{
+    return abs(ref-calc)/abs(ref);
+}
+
 int main( int argc, char *argv[] )
 {
     int n, m;
+    double I_ref, I_mp, I_mc;
     if ( argc != 3 )
     {
         cout<<"usage: "<< argv[0] <<" <n> <m>\n"<< endl;
@@ -149,9 +155,12 @@ int main( int argc, char *argv[] )
     {
         n = atoi(argv[1]);
         m = atoi(argv[2]);
-        cout<<"monte_carlo = "<<monte_carlo(n,m)<<endl;
-        cout<<"midpoint = "<<midpoint(n,m)<<endl;
-        cout<<"I_ref = "<<I_ref(n,m)<<endl;
+        I_ref = calc_I_ref(n,m);
+        I_mp = midpoint(n,m);
+        I_mc = monte_carlo(n,m);
+        cout<<"monte_carlo = "<<I_mc<<", err="<<abs_rel_err(I_ref, I_mc)<<endl;
+        cout<<"midpoint = "<<I_mp<<", err="<<abs_rel_err(I_ref, I_mp)<<endl;
+        cout<<"I_ref = "<<I_ref<<endl;
     }
     return 0;
 }
