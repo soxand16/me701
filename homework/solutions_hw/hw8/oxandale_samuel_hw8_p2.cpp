@@ -31,6 +31,24 @@ double f(double *x, int n)
     return value;
 }
 
+double factorial(double n)
+{
+    if (n<0)
+    {
+        return 0;
+    }
+    if (n==0)
+    {
+        return 1;
+    }
+    double factorial = 1.0;
+    for ( int i = 2; i <= n; i = i + 1)
+    {
+        factorial *= i;
+    }
+    return factorial;
+}
+
 double monte_carlo(int n, int m)
 {
     double x[n];
@@ -56,6 +74,70 @@ double monte_carlo(int n, int m)
     return f_val / total;
 }
 
+double midpoint(int n, int m)
+{
+    double x_vals[m];
+    double x[n];
+    int index[n];
+    double I = 0.0;
+    
+    // Gets values for different x's
+    for ( int i = 0; i < m; i = i + 1)
+    {
+        x_vals[i] = (i+0.5)/m;
+    }
+    
+    // Initializes indexes
+    for ( int i = 0; i < n; i = i + 1)
+    {
+        index[i] = 0;
+    }
+    
+    // Counts up the indexes to get all of the combos
+    while (1)
+    {
+        index[n-1] = index[n-1] + 1;
+        for ( int i = n - 1; i > 0; i = i - 1)
+        {
+            if (index[i] == m)
+            {
+                index[i] = 0;
+                index[i-1] = index[i-1] + 1;
+            }
+        }
+        
+        if (index[0] == m)
+        {
+            break;
+        }
+        
+        for ( int i = 0; i < n; i = i + 1)
+        {
+            x[i] = x_vals[index[i]];
+        }
+        
+        I = I + f(x,n)/m;
+        
+
+    }
+    
+    return I;
+}
+
+double I_ref(int n, int m)
+{
+    double bi_coeff;
+    if (n < 2)
+    {
+        bi_coeff = 0;
+    }
+    else
+    {
+    bi_coeff = factorial(n)/(factorial(n-2)*2.0);
+    }
+    return bi_coeff/2 + n/3.0;
+}
+
 int main( int argc, char *argv[] )
 {
     int n, m;
@@ -67,7 +149,9 @@ int main( int argc, char *argv[] )
     {
         n = atoi(argv[1]);
         m = atoi(argv[2]);
-        cout<<monte_carlo(n,m)<<endl;
+        cout<<"monte_carlo = "<<monte_carlo(n,m)<<endl;
+        cout<<"midpoint = "<<midpoint(n,m)<<endl;
+        cout<<"I_ref = "<<I_ref(n,m)<<endl;
     }
     return 0;
 }
